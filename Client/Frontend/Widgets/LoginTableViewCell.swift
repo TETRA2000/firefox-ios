@@ -28,13 +28,15 @@ class LoginTableViewCell: UITableViewCell {
 
     private let labelContainer = UIView()
 
-    let descriptionLabel: UILabel = {
-        let label = UILabel()
+    let descriptionLabel: UITextField = {
+        let label = UITextField()
         label.font = LoginTableViewCellUX.descriptionLabelFont
         label.textColor = LoginTableViewCellUX.descriptionLabelTextColor
         label.textAlignment = .Left
         label.backgroundColor = UIColor.whiteColor()
-        label.numberOfLines = 1
+        label.userInteractionEnabled = false
+        label.autocapitalizationType = .None
+        label.autocorrectionType = .No
         return label
     }()
 

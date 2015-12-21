@@ -28,7 +28,12 @@ class LoginDetailViewController: UITableViewController {
 
     private let profile: Profile
 
-    private let login: LoginData
+    private var login: LoginData {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+
     private var loginUsageData: LoginUsageData? = nil {
         didSet {
             tableView.reloadData()
@@ -38,6 +43,11 @@ class LoginDetailViewController: UITableViewController {
     private let LoginCellIdentifier = "LoginCell"
     private let DeleteCellIdentifier = "DeleteCell"
     private let SectionHeaderFooterIdentifier = "SectionHeaderFooterIdentifier"
+
+    // References to input fields
+    private weak var usernameField: UITextField?
+    private weak var passwordField: UITextField?
+    private weak var websiteField: UITextField?
 
     init(profile: Profile, login: LoginData) {
         self.login = login
@@ -82,6 +92,9 @@ class LoginDetailViewController: UITableViewController {
             let loginCell = tableView.dequeueReusableCellWithIdentifier(LoginCellIdentifier, forIndexPath: indexPath) as! LoginTableViewCell
             loginCell.selectionStyle = .None
 
+            loginCell.descriptionLabel.userInteractionEnabled = editing
+            loginCell.descriptionLabel.delegate = self
+
             switch InfoItem(rawValue: indexPath.row)! {
             case .TitleItem:
                 loginCell.style = .IconAndDescriptionLabel
@@ -90,14 +103,19 @@ class LoginDetailViewController: UITableViewController {
                 loginCell.style = .NoIconAndBothLabels
                 loginCell.highlightedLabel.text = NSLocalizedString("username", tableName: "LoginManager", comment: "Title for username row in Login Detail View")
                 loginCell.descriptionLabel.text = login.username
+                loginCell.descriptionLabel.keyboardType = .EmailAddress
+                usernameField = loginCell.descriptionLabel
             case .PasswordItem:
                 loginCell.style = .NoIconAndBothLabels
                 loginCell.highlightedLabel.text = NSLocalizedString("password", tableName: "LoginManager", comment: "Title for password row in Login Detail View")
                 loginCell.descriptionLabel.text = login.password.anonymize()
+                passwordField = loginCell.descriptionLabel
             case .WebsiteItem:
                 loginCell.style = .NoIconAndBothLabels
                 loginCell.highlightedLabel.text = NSLocalizedString("website", tableName: "LoginManager", comment: "Title for website row in Login Detail View")
                 loginCell.descriptionLabel.text = login.hostname
+                loginCell.descriptionLabel.keyboardType = .URL
+                websiteField = loginCell.descriptionLabel
             }
             return loginCell
         case .Delete:
@@ -124,7 +142,7 @@ class LoginDetailViewController: UITableViewController {
     override func tableView(tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         switch ListSection(rawValue: section)! {
         case .Info: return 60
-        default: return 0
+        case .Delete: return 1
         }
     }
 
@@ -149,8 +167,25 @@ class LoginDetailViewController: UITableViewController {
             return footer
 
         default:
-            return nil
+            let footer = tableView.dequeueReusableHeaderFooterViewWithIdentifier(SectionHeaderFooterIdentifier) as! SettingsTableSectionHeaderFooterView
+            footer.showBottomBorder = false
+            return footer
         }
+    }
+}
+
+extension LoginDetailViewController: UITextFieldDelegate {
+
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        if textField == usernameField {
+            passwordField?.becomeFirstResponder()
+        } else if textField == passwordField {
+            websiteField?.becomeFirstResponder()
+        } else {
+            textField.resignFirstResponder()
+        }
+
+        return false
     }
 }
 
@@ -170,12 +205,30 @@ extension LoginDetailViewController {
 extension LoginDetailViewController {
 
     func SELedit() {
-        tableView.editing = true
+        editing = true
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: .None)
+        usernameField?.becomeFirstResponder()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: "SELdoneEditing")
     }
 
     func SELdoneEditing() {
-        tableView.editing = false
+        editing = false
+
+        let username = usernameField?.text ?? ""
+        let password = passwordField?.text ?? ""
+        let hostname = websiteField?.text ?? ""
+
+        tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: .None)
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Edit, target: self, action: "SELedit")
+
+        let newLogin = Login(guid: login.guid, hostname: hostname, username: username, password: password)
+
+        profile.logins.updateLoginByGUID(login.guid, new: newLogin, significant: true) >>> {
+            self.profile.logins.getLoginDataForGUID(self.login.guid).uponQueue(dispatch_get_main_queue()) { result in
+                if let updatedLogin = result.successValue {
+                    self.login = updatedLogin
+                }
+            }
+        }
     }
 }
