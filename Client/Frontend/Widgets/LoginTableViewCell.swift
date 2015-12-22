@@ -48,11 +48,17 @@ class LoginTableViewCell: UITableViewCell {
         return label
     }()
 
-    private let iconImageView: UIImageView = {
+    private lazy var iconImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = UIColor.whiteColor()
         imageView.contentMode = .ScaleAspectFit
         return imageView
+    }()
+
+    private lazy var customSelectionBackground: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.clearColor()
+        return view
     }()
 
     var style: LoginTableViewCellStyle = .IconAndBothLabels {
@@ -156,6 +162,11 @@ class LoginTableViewCell: UITableViewCell {
         }
 
         setNeedsUpdateConstraints()
+    }
+
+    override func setEditing(editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        selectedBackgroundView = editing ? customSelectionBackground : nil
     }
 }
 
