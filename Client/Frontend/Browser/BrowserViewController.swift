@@ -68,6 +68,7 @@ class BrowserViewController: UIViewController {
 
     private let profile: Profile
     let tabManager: TabManager
+    let handoffManager: HandoffManager
 
     // These views wrap the urlbar and toolbar to provide background effects on them
     var header: BlurWrapper!
@@ -98,6 +99,7 @@ class BrowserViewController: UIViewController {
         self.profile = profile
         self.tabManager = tabManager
         self.readerModeCache = DiskReaderModeCache.sharedInstance
+        self.handoffManager = HandoffManager.sharedInstance
         super.init(nibName: nil, bundle: nil)
         didInit()
     }
@@ -344,6 +346,8 @@ class BrowserViewController: UIViewController {
 
         log.debug("BVC setting up constraints…")
         setupConstraints()
+        log.debug("BVC setting up handoff")
+        setupHandoff()
         log.debug("BVC done.")
     }
 
@@ -515,6 +519,9 @@ class BrowserViewController: UIViewController {
         log.debug("BVC taking pending screenshots….")
         screenshotHelper.takePendingScreenshots(tabManager.tabs)
         log.debug("BVC done taking screenshots.")
+        
+        log.debug("BVC starting handoff.")
+        handoffManager.start()
 
         log.debug("BVC calling super.viewDidAppear.")
         super.viewDidAppear(animated)
@@ -523,6 +530,9 @@ class BrowserViewController: UIViewController {
 
     override func viewWillDisappear(animated: Bool) {
         screenshotHelper.viewIsVisible = false
+        
+        log.debug("BVC stopping handoff.")
+        handoffManager.stop()
 
         super.viewWillDisappear(animated)
     }
@@ -884,6 +894,8 @@ class BrowserViewController: UIViewController {
         navigationToolbar.updatePageStatus(isWebPage: isPage)
 
         guard let url = tab.displayURL?.absoluteString else {
+            handoffManager.clearCurrentURL()
+            handoffManager.stop()
             return
         }
 
@@ -894,6 +906,14 @@ class BrowserViewController: UIViewController {
             }
 
             self.navigationToolbar.updateBookmarkStatus(bookmarked)
+        }
+        
+        if !tab.isPrivate {
+            handoffManager.updateCurrentURL(url)
+            handoffManager.start()
+        } else {
+            handoffManager.clearCurrentURL()
+            handoffManager.stop()
         }
     }
 
@@ -1033,6 +1053,10 @@ class BrowserViewController: UIViewController {
             self.findInPageBar = nil
             updateViewConstraints()
         }
+    }
+    
+    private func setupHandoff() {
+        userActivity = handoffManager.userActivity
     }
 }
 
