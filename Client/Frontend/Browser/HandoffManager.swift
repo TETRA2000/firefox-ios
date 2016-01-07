@@ -3,30 +3,21 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 class HandoffManager: NSObject {
-    private static var _sharedInstance: HandoffManager?
-    static var sharedInstance: HandoffManager {
-        get {
-            if _sharedInstance == nil {
-                _sharedInstance = HandoffManager()
-            }
-            
-            return _sharedInstance!
-        }
-    }
+    static var sharedInstance = HandoffManager()
     
     lazy var userActivity: NSUserActivity? = NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
     
     func start() {
-        if let _ = userActivity?.webpageURL {
-            userActivity?.becomeCurrent()
+        guard ((userActivity?.webpageURL) != nil) else {
+            return
         }
+        userActivity?.becomeCurrent()
     }
     
     func stop() {
+         // iOS 8.x is not current target
         if #available(iOS 9.0, *) {
             userActivity?.resignCurrent()
-        } else {
-            // iOS 8 is not our target
         }
     }
     

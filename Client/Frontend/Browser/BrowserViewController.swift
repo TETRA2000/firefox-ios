@@ -68,7 +68,6 @@ class BrowserViewController: UIViewController {
 
     private let profile: Profile
     let tabManager: TabManager
-    let handoffManager: HandoffManager
 
     // These views wrap the urlbar and toolbar to provide background effects on them
     var header: BlurWrapper!
@@ -99,7 +98,6 @@ class BrowserViewController: UIViewController {
         self.profile = profile
         self.tabManager = tabManager
         self.readerModeCache = DiskReaderModeCache.sharedInstance
-        self.handoffManager = HandoffManager.sharedInstance
         super.init(nibName: nil, bundle: nil)
         didInit()
     }
@@ -521,7 +519,7 @@ class BrowserViewController: UIViewController {
         log.debug("BVC done taking screenshots.")
         
         log.debug("BVC starting handoff.")
-        handoffManager.start()
+        HandoffManager.sharedInstance.start()
 
         log.debug("BVC calling super.viewDidAppear.")
         super.viewDidAppear(animated)
@@ -532,7 +530,7 @@ class BrowserViewController: UIViewController {
         screenshotHelper.viewIsVisible = false
         
         log.debug("BVC stopping handoff.")
-        handoffManager.stop()
+        HandoffManager.sharedInstance.stop()
 
         super.viewWillDisappear(animated)
     }
@@ -894,8 +892,8 @@ class BrowserViewController: UIViewController {
         navigationToolbar.updatePageStatus(isWebPage: isPage)
 
         guard let url = tab.displayURL?.absoluteString else {
-            handoffManager.clearCurrentURL()
-            handoffManager.stop()
+            HandoffManager.sharedInstance.clearCurrentURL()
+            HandoffManager.sharedInstance.stop()
             return
         }
 
@@ -909,11 +907,11 @@ class BrowserViewController: UIViewController {
         }
         
         if !tab.isPrivate {
-            handoffManager.updateCurrentURL(url)
-            handoffManager.start()
+            HandoffManager.sharedInstance.updateCurrentURL(url)
+            HandoffManager.sharedInstance.start()
         } else {
-            handoffManager.clearCurrentURL()
-            handoffManager.stop()
+            HandoffManager.sharedInstance.clearCurrentURL()
+            HandoffManager.sharedInstance.stop()
         }
     }
 
@@ -1056,7 +1054,7 @@ class BrowserViewController: UIViewController {
     }
     
     private func setupHandoff() {
-        userActivity = handoffManager.userActivity
+        userActivity = HandoffManager.sharedInstance.userActivity
     }
 }
 
