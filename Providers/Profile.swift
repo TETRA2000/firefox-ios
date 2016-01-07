@@ -21,6 +21,7 @@ public protocol SyncManager {
     var lastSyncFinishTime: Timestamp? { get set }
 
     func hasSyncedHistory() -> Deferred<Maybe<Bool>>
+    func hasSyncedLogins() -> Deferred<Maybe<Bool>>
 
     func syncClients() -> SyncResult
     func syncClientsThenTabs() -> SyncResult
@@ -426,8 +427,8 @@ public class BrowserProfile: Profile {
     }()
 
     var accountConfiguration: FirefoxAccountConfiguration {
-        let syncService: Bool = self.prefs.boolForKey("useChinaSyncService") ?? false
-        if syncService {
+        let locale = NSLocale.currentLocale()
+        if self.prefs.boolForKey("useChinaSyncService") ?? (locale.localeIdentifier == "zh_CN") {
             return ChinaEditionFirefoxAccountConfiguration()
         }
         return ProductionFirefoxAccountConfiguration()
@@ -924,6 +925,10 @@ public class BrowserProfile: Profile {
 
         func hasSyncedHistory() -> Deferred<Maybe<Bool>> {
             return self.profile.history.hasSyncedHistory()
+        }
+
+        func hasSyncedLogins() -> Deferred<Maybe<Bool>> {
+            return self.profile.logins.hasSyncedLogins()
         }
 
         func syncClients() -> SyncResult {

@@ -1056,6 +1056,15 @@ class BrowserViewController: UIViewController {
     private func setupHandoff() {
         userActivity = HandoffManager.sharedInstance.userActivity
     }
+
+    override func canBecomeFirstResponder() -> Bool {
+        return true
+    }
+
+    override func becomeFirstResponder() -> Bool {
+        // Make the web view the first responder so that it can show the selection menu.
+        return tabManager.selectedTab?.webView?.becomeFirstResponder() ?? false
+    }
 }
 
 /**
@@ -2091,6 +2100,11 @@ extension BrowserViewController: ReaderModeStyleViewControllerDelegate {
 extension BrowserViewController {
     func updateReaderModeBar() {
         if let readerModeBar = readerModeBar {
+            if let tab = self.tabManager.selectedTab where tab.isPrivate {
+                readerModeBar.applyTheme(Theme.PrivateMode)
+            } else {
+                readerModeBar.applyTheme(Theme.NormalMode)
+            }
             if let url = self.tabManager.selectedTab?.displayURL?.absoluteString, result = profile.readingList?.getRecordWithURL(url) {
                 if let successValue = result.successValue, record = successValue {
                     readerModeBar.unread = record.unread
