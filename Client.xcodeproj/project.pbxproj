@@ -2792,6 +2792,7 @@
 				0BF42D361A7C0B8E00889E28 /* FaviconManager.swift */,
 				D3B6923C1B9F9444004B87A4 /* FindInPageBar.swift */,
 				D3B6923E1B9F9A58004B87A4 /* FindInPageHelper.swift */,
+				A9A4781C1C32A43A00195565 /* HandoffManager.swift */,
 				0BB5B30A1AC0AD1F0052877D /* LoginsHelper.swift */,
 				7BA8D1C61BA037F500C8AE9E /* OpenPdfHelper.swift */,
 				D3FA77831A43B2CE0010CD32 /* OpenSearch.swift */,
@@ -2810,7 +2811,6 @@
 				7BA0601A1C0F4DE200DFADB6 /* TabPeekViewController.swift */,
 				D3C744CC1A687D6C004CE85D /* URIFixup.swift */,
 				0BF0DB931A8545800039F300 /* URLBarView.swift */,
-				A9A4781C1C32A43A00195565 /* HandoffManager.swift */,
 				E4ECD0871B70FD4F00B90D22 /* WindowCloseHelper.swift */,
 			);
 			path = Browser;

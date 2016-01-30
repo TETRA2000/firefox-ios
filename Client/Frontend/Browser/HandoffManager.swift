@@ -5,32 +5,35 @@
 class HandoffManager: NSObject {
     static var sharedInstance = HandoffManager()
     
-    lazy var userActivity: NSUserActivity? = NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
+    lazy var userActivity: NSUserActivity = {
+        return NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
+    }()
     
     func start() {
-        guard ((userActivity?.webpageURL) != nil) else {
-            return
+        // iOS 8.x is not current target
+        if #available(iOS 9.0, *) {
+            guard ((userActivity.webpageURL) != nil) else {
+                return
+            }
+            userActivity.becomeCurrent()
         }
-        userActivity?.becomeCurrent()
     }
     
     func stop() {
-         // iOS 8.x is not current target
         if #available(iOS 9.0, *) {
-            userActivity?.resignCurrent()
+            userActivity.resignCurrent()
         }
     }
     
     func clearCurrentURL() {
-        userActivity?.webpageURL = nil
+        userActivity.webpageURL = nil
     }
     
     func updateCurrentURL(urlStr: String?) {
-        guard let urlStr = urlStr,
-            let url = NSURL(string: urlStr) else {
-                return
+        guard let url = urlStr?.asURL else {
+            return
         }
         
-        userActivity?.webpageURL = url
+        userActivity.webpageURL = url
     }
 }
